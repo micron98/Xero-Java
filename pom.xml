@@ -8,6 +8,12 @@
 	<name>Xero-Java SDK</name>
 	<url>http://maven.apache.org</url>
 	<dependencies>
+        <dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-api</artifactId>
+		    <version>1.7.25</version>
+            <scope>runtime</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.google.oauth-client</groupId>
 			<artifactId>google-oauth-client</artifactId>

@@ -93,9 +93,9 @@ import com.xero.model.User;
 
 public class XeroClient {
 	
-	private Config config;  
-	private String token = null;
-	private String tokenSecret = null;
+	protected Config config;  
+	protected String token = null;
+	protected String tokenSecret = null;
 	private static final int BUFFER_SIZE = 4096;
 	
 	protected static final DateFormat utcFormatter;
@@ -426,7 +426,7 @@ public class XeroClient {
 		}
 	}
 
-	public static <T> T unmarshallResponse(String responseBody, Class<T> clazz) throws UnsupportedEncodingException {
+	public <T> T unmarshallResponse(String responseBody, Class<T> clazz) throws UnsupportedEncodingException {
 		try {
 			JAXBContext context = JAXBContext.newInstance(clazz);
 		    Unmarshaller u = context.createUnmarshaller();
