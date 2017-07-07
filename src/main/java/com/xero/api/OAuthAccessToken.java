@@ -3,9 +3,8 @@ package com.xero.api;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
-
-import com.xero.api.OAuthParameters;
 
 import com.google.api.client.auth.oauth.OAuthSigner;
 import com.google.api.client.http.GenericUrl;
@@ -30,185 +29,166 @@ public class OAuthAccessToken {
 	private Config config;
 	private HttpRequest request;
 	private GenericUrl Url;
-	
+
 	private HttpTransport transport;
 	private OAuthSigner signer;
 	public String verifier;
 	public String tempToken;
 	private String tempTokenSecret;
-	
-	public OAuthAccessToken(Config config)
-	{
+
+	public OAuthAccessToken(Config config) {
 		this.config = config;
 	}
-	
-	public OAuthAccessToken build(String verifier, String tempToken, String tempTokenSecret) throws IOException
-	{
+
+	public OAuthAccessToken build(String verifier, String tempToken, String tempTokenSecret) throws IOException {
 		this.verifier = verifier;
 		this.tempToken = tempToken;
 		this.tempTokenSecret = tempTokenSecret;
-		
+
 		Url = new GenericUrl(config.getAccessTokenUrl());
-		
+
 		transport = new ApacheHttpTransport();
-		  
+
 		HttpRequestFactory requestFactory = transport.createRequestFactory();
-		request = requestFactory.buildRequest(HttpMethods.GET, Url,null);
+		request = requestFactory.buildRequest(HttpMethods.GET, Url, null);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setUserAgent(config.getUserAgent());
 		headers.setAccept(config.getAccept());
-		request.setHeaders(headers);    
-		
-		createParameters().intercept(request); 
-		
+		request.setHeaders(headers);
+
+		createParameters().intercept(request);
+
 		return this;
 	}
-	
-	public OAuthAccessToken build() throws IOException
-	{
+
+	public OAuthAccessToken build() throws IOException {
 		Url = new GenericUrl(config.getAccessTokenUrl());
-		
+
 		transport = new ApacheHttpTransport();
-		  
+
 		HttpRequestFactory requestFactory = transport.createRequestFactory();
-		request = requestFactory.buildRequest(HttpMethods.GET, Url,null);
+		request = requestFactory.buildRequest(HttpMethods.GET, Url, null);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setUserAgent(config.getUserAgent());
 		headers.setAccept(config.getAccept());
 
-		request.setHeaders(headers);    
-		createRefreshParameters().intercept(request); 
-		
+		request.setHeaders(headers);
+		createRefreshParameters().intercept(request);
+
 		return this;
 	}
-	
-	public boolean execute() throws IOException
-	{
+
+	public boolean execute() throws IOException {
 		try {
-			HttpResponse response = request.execute();	
-			
+			System.err.println(">>" + request.getRequestMethod() + " " + request.getUrl());
+			for (Entry<String, Object> header : request.getHeaders().entrySet()) {
+				System.err.println(">>[" + header.getKey() + "] = [" + header.getValue() + "]");
+			}
+			HttpResponse response = request.execute();
+
 			isSuccess = response.isSuccessStatusCode();
-		
-			if (isSuccess)
-			{
+
+			if (isSuccess) {
 				Map<String, String> oauthKeys = getQueryMap(response.parseAsString());
-				
+
 				this.token = oauthKeys.get("oauth_token");
 				this.tokenSecret = oauthKeys.get("oauth_token_secret");
 				this.sessionHandle = oauthKeys.get("oauth_session_handle");
 				this.tokenTimestamp = System.currentTimeMillis() / 1000l;
 				isSuccess = true;
-			} 
-			else 
-			{
-				
+			} else {
+
 			}
 		} catch (HttpResponseException e) {
 			System.out.println("REFRESH EXECPTION");
-			
+			e.printStackTrace();
+
 			Map<String, String> oauthError = getQueryMap(e.getMessage());
 			this.problem = oauthError.get("oauth_problem");
 			this.advice = oauthError.get("oauth_problem_advice");
-			//System.out.println("HttpException" + e.toString());
-			isSuccess =  false;
+			System.out.println("HttpException" + e.toString());
+			isSuccess = false;
 		}
 		return isSuccess;
 	}
-	
-	public void setToken(String token) 
-	{
-		this.token = token; 
-		if(config.getAppType().equals("PRIVATE")) 
-		{
+
+	public void setToken(String token) {
+		this.token = token;
+		if (config.getAppType().equals("PRIVATE")) {
 			this.token = config.getConsumerKey();
 		}
 	}
-	
-	public String getToken()
-	{
+
+	public String getToken() {
 		return token;
 	}
 
-	public void setTokenSecret(String secret) 
-	{
-		this.tokenSecret = secret; 
-		
+	public void setTokenSecret(String secret) {
+		this.tokenSecret = secret;
+
 	}
-	
-	public String getTokenSecret()
-	{
+
+	public String getTokenSecret() {
 		return tokenSecret;
 	}
-	
-	public Boolean isSuccess()
-	{
+
+	public Boolean isSuccess() {
 		return isSuccess;
 	}
-	
-	public String getProblem()
-	{
+
+	public String getProblem() {
 		return problem;
 	}
-	
-	public String getAdvice()
-	{
+
+	public String getAdvice() {
 		return advice;
 	}
-	
-	public void setSessionHandle(String sessionHandle) 
-	{
-		this.sessionHandle = sessionHandle; 
+
+	public void setSessionHandle(String sessionHandle) {
+		this.sessionHandle = sessionHandle;
 	}
-	
-	public String getSessionHandle()
-	{
+
+	public String getSessionHandle() {
 		return sessionHandle;
 	}
-	
-	public String getTokenTimestamp()
-	{
+
+	public String getTokenTimestamp() {
 		String s = Objects.toString(tokenTimestamp, null);
 		return s;
 	}
-	
-	private static Map<String, String> getQueryMap(String query)
-	{
-	    String[] params = query.split("&");
-	    Map<String, String> map = new HashMap<String, String>();
-	    for (String param : params)
-	    {
-	        String name = param.split("=")[0];
-	        String value = param.split("=")[1];
-	        map.put(name, value);
-	    }
-	    
-	    return map;
-	}
-	
-	public HashMap<String, String> getAll()
-	{
-		HashMap<String,String> map = new HashMap<String,String>();
-	
-		map.put("token",getToken());
-		map.put("tokenSecret",getTokenSecret());
-		map.put("sessionHandle",getSessionHandle());
-		map.put("tokenTimestamp",getTokenTimestamp());
-		
+
+	private static Map<String, String> getQueryMap(String query) {
+		String[] params = query.split("&");
+		Map<String, String> map = new HashMap<String, String>();
+		for (String param : params) {
+			String name = param.split("=")[0];
+			String value = param.split("=")[1];
+			map.put(name, value);
+		}
+
 		return map;
 	}
-	
-	private OAuthParameters createParameters() 
-	{
-		if(config.getAppType().equals("PUBLIC"))
-		{
+
+	public HashMap<String, String> getAll() {
+		HashMap<String, String> map = new HashMap<String, String>();
+
+		map.put("token", getToken());
+		map.put("tokenSecret", getTokenSecret());
+		map.put("sessionHandle", getSessionHandle());
+		map.put("tokenTimestamp", getTokenTimestamp());
+
+		return map;
+	}
+
+	private OAuthParameters createParameters() {
+		if (config.getAppType().equals("PUBLIC")) {
 			signer = new HmacSigner(config).createHmacSigner(tempTokenSecret);
-		}	else {
+		} else {
 			signer = new RsaSigner(config).createRsaSigner();
 		}
-		  
-		
+
 		OAuthParameters result = new OAuthParameters();
 		result.consumerKey = config.getConsumerKey();
 		result.token = tempToken;
@@ -216,11 +196,10 @@ public class OAuthAccessToken {
 		result.signer = signer;
 		return result;
 	}
-	
-	private OAuthParameters createRefreshParameters() 
-	{
+
+	private OAuthParameters createRefreshParameters() {
 		signer = new RsaSigner(config).createRsaSigner();
-		  
+
 		OAuthParameters result = new OAuthParameters();
 		result.consumerKey = config.getConsumerKey();
 		result.token = this.token;
@@ -228,26 +207,24 @@ public class OAuthAccessToken {
 		result.signer = signer;
 		return result;
 	}
-	
-	public boolean isStale(String timestamp) 
-	{
+
+	public boolean isStale(String timestamp) {
 		boolean bool = false;
-		
+
 		if (timestamp == null || timestamp.isEmpty()) {
 			bool = false;
 		} else {
-		
+
 			long currentTime = System.currentTimeMillis() / 1000l;
-			 
+
 			long tokenTimestamp = Long.parseLong(timestamp);
 			long secondsElapsed = (currentTime - tokenTimestamp);
-			
-			if (secondsElapsed >= 1800) 
-			{
+
+			if (secondsElapsed >= 1800) {
 				bool = true;
 			}
 		}
-		
+
 		return bool;
 	}
 
