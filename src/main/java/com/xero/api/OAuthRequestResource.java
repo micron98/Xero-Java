@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.http.HttpHost;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.api.client.auth.oauth.OAuthParameters;
 import com.google.api.client.auth.oauth.OAuthSigner;
@@ -44,6 +46,8 @@ import com.google.api.client.util.Beta;
  */
 @Beta
 public class OAuthRequestResource extends GenericUrl {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(OAuthRequestResource.class);
 
 	/**
 	 * HTTP transport required for executing request in {@link #execute()}.
@@ -180,6 +184,14 @@ public class OAuthRequestResource extends GenericUrl {
 		request = requestFactory.buildRequest(this.httpMethod, Url, requestBody);
 		request.setConnectTimeout(connectTimeout);
 		request.setHeaders(headers);
+		
+		if(LOG.isDebugEnabled()) {
+			LOG.debug(">>"+request.getRequestMethod()+" "+request.getUrl());
+			for(Entry<String,Object> e:headers.entrySet()) {
+				LOG.debug(">>"+e.getKey()+"="+e.getValue());
+			}
+			LOG.debug(">>BODY["+requestBody+"]");
+		}
 		
 		createParameters().intercept(request);
 		
