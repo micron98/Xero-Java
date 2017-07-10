@@ -190,7 +190,7 @@ public class OAuthRequestResource extends GenericUrl {
 			for(Entry<String,Object> e:headers.entrySet()) {
 				LOG.debug(">>"+e.getKey()+"="+e.getValue());
 			}
-			LOG.debug(">>BODY["+requestBody+"]");
+			LOG.debug(">>BODY["+body+"]");
 		}
 		
 		createParameters().intercept(request);
