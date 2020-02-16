@@ -1,6 +1,7 @@
 package com.xero.api.tests;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -8,7 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.xero.api.XeroClient;
+import com.xero.model.BatchPayment;
 import com.xero.model.Contact;
+import com.xero.model.ValidationError;
 
 public class XeroClientTests {
 	XeroClient client;

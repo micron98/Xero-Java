@@ -12,6 +12,7 @@ import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ import com.xero.model.ArrayOfAccount;
 import com.xero.model.ArrayOfAllocation;
 import com.xero.model.ArrayOfBankTransaction;
 import com.xero.model.ArrayOfBankTransfer;
+import com.xero.model.ArrayOfBatchPayment;
 import com.xero.model.ArrayOfBrandingTheme;
 import com.xero.model.ArrayOfContact;
 import com.xero.model.ArrayOfContactGroup;
@@ -62,6 +64,7 @@ import com.xero.model.ArrayOfUser;
 import com.xero.model.Attachment;
 import com.xero.model.BankTransaction;
 import com.xero.model.BankTransfer;
+import com.xero.model.BatchPayment;
 import com.xero.model.BrandingTheme;
 import com.xero.model.Contact;
 import com.xero.model.ContactGroup;
@@ -200,6 +203,7 @@ public class XeroClient {
 			if (ioe instanceof SocketTimeoutException) {
 				throw new SocketTimeoutException("Xero is not responding");
 			}
+			throw ioe;
 		}
 
 		return response;
@@ -881,20 +885,47 @@ public class XeroClient {
 	}
 
 	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order) throws IOException {
-		return getInvoices(modifiedAfter, where, order, null, null);
+		return getInvoices(modifiedAfter, where, order, null);
 	}
 
 	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, String page) throws IOException {
-		return getInvoices(modifiedAfter, where, order, page, null);
+		return getInvoices(modifiedAfter, where, order, page);
 	}
 
-	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, String page, String ids)
+	public List<Invoice> getInvoices(Collection<String> ids) throws IOException {
+		return getInvoices(ids.toArray(new String[ids.size()]));
+	}
+
+	public List<Invoice> getInvoices(String... ids) throws IOException {
+		return getInvoices(null, null, null, null, ids);
+	}
+
+	public static String joinIDs(String... ids) {
+		if (ids == null || ids.length == 0) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String s : ids) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(s);
+		}
+		return sb.toString();
+	}
+
+	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, String page, List<String> ids)
+			throws IOException {
+		return getInvoices(modifiedAfter, where, order, page, ids.toArray(new String[ids.size()]));
+	}
+
+	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, String page, String... ids)
 			throws IOException {
 		Map<String, String> params = new HashMap<>();
 		addToMapIfNotNull(params, "Where", where);
 		addToMapIfNotNull(params, "order", order);
 		addToMapIfNotNull(params, "page", page);
-		addToMapIfNotNull(params, "Ids", ids);
+		addToMapIfNotNull(params, "Ids", ids.length == 0 ? null : joinIDs(ids));
 
 		Response responseObj = get("Invoices", modifiedAfter, params);
 		if (responseObj.getInvoices() == null) {
@@ -1164,6 +1195,47 @@ public class XeroClient {
 
 	public Overpayment getOverpayment(String id) throws IOException {
 		return singleResult(get("Overpayments/" + id).getOverpayments().getOverpayment());
+	}
+
+	// BATCH PAYMENTS
+	public List<BatchPayment> getBatchPayments() throws IOException {
+		Response responseObj = get("BatchPayments");
+		if (responseObj.getBatchPayments() == null) {
+			ArrayOfBatchPayment array = new ArrayOfBatchPayment();
+			return array.getBatchPayment();
+		} else {
+			return responseObj.getBatchPayments().getBatchPayment();
+		}
+	}
+
+	public List<BatchPayment> getBatchPayments(Date modifiedAfter, String where, String order) throws IOException {
+		Map<String, String> params = new HashMap<>();
+		addToMapIfNotNull(params, "Where", where);
+		addToMapIfNotNull(params, "order", order);
+
+		Response responseObj = get("BatchPayments", modifiedAfter, params);
+		if (responseObj.getBatchPayments() == null) {
+			ArrayOfBatchPayment array = new ArrayOfBatchPayment();
+			return array.getBatchPayment();
+		} else {
+			return responseObj.getBatchPayments().getBatchPayment();
+		}
+	}
+
+	public List<BatchPayment> createBatchPayments(List<BatchPayment> objects) throws IOException {
+		ArrayOfBatchPayment array = new ArrayOfBatchPayment();
+		array.getBatchPayment().addAll(objects);
+		return put("BatchPayments", objFactory.createBatchPayments(array)).getBatchPayments().getBatchPayment();
+	}
+
+	public List<BatchPayment> deleteBatchPayment(List<BatchPayment> objects) throws IOException {
+		ArrayOfBatchPayment array = new ArrayOfBatchPayment();
+		array.getBatchPayment().addAll(objects);
+		return post("BatchPayments", objFactory.createBatchPayments(array)).getBatchPayments().getBatchPayment();
+	}
+
+	public BatchPayment getBatchPayment(String id) throws IOException {
+		return singleResult(get("BatchPayments/" + id).getBatchPayments().getBatchPayment());
 	}
 
 	// PAYMENTS
