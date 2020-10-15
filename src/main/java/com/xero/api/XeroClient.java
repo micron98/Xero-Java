@@ -885,11 +885,7 @@ public class XeroClient {
 	}
 
 	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order) throws IOException {
-		return getInvoices(modifiedAfter, where, order, null);
-	}
-
-	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, String page) throws IOException {
-		return getInvoices(modifiedAfter, where, order, page);
+		return getInvoices(modifiedAfter, where, order, (Integer) null);
 	}
 
 	public List<Invoice> getInvoices(Collection<String> ids) throws IOException {
@@ -912,6 +908,14 @@ public class XeroClient {
 			sb.append(s);
 		}
 		return sb.toString();
+	}
+
+	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, Integer page) throws IOException {
+		return getInvoices(modifiedAfter, where, order, page == null ? null : page.toString());
+	}
+
+	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, String page) throws IOException {
+		return getInvoices(modifiedAfter, where, order, page);
 	}
 
 	public List<Invoice> getInvoices(Date modifiedAfter, String where, String order, String page, List<String> ids)
@@ -1250,9 +1254,14 @@ public class XeroClient {
 	}
 
 	public List<Payment> getPayments(Date modifiedAfter, String where, String order) throws IOException {
+		return getPayments(modifiedAfter, where, order, 0);
+	}
+
+	public List<Payment> getPayments(Date modifiedAfter, String where, String order, int page) throws IOException {
 		Map<String, String> params = new HashMap<>();
 		addToMapIfNotNull(params, "Where", where);
 		addToMapIfNotNull(params, "order", order);
+		addToMapIfNotNull(params, "page", page > 0 ? String.valueOf(page) : null);
 
 		Response responseObj = get("Payments", modifiedAfter, params);
 		if (responseObj.getPayments() == null) {
