@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.apache.http.HttpHost;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.FileContent;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpContent;
-import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpHeaders; 
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
@@ -218,6 +219,7 @@ public class OAuthRequestResource extends GenericUrl {
 	
 	public void setIfModifiedSince(Date modifiedAfter) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 		this.ifModifiedSince = formatter.format(modifiedAfter); 
 	}
 	

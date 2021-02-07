@@ -95,6 +95,11 @@ import com.xero.model.TrackingCategory;
 import com.xero.model.TrackingCategoryOption;
 import com.xero.model.User;
 
+/**
+ * https://developer.xero.com/documentation/oauth2/overview
+ * @author samkang
+ *
+ */
 public class XeroClient {
 
 	protected Config config;

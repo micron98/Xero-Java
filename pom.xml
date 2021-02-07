@@ -3,7 +3,7 @@
 	<groupId>com.xero</groupId>
 	<artifactId>xero-java-sdk</artifactId>
 	<packaging>jar</packaging>
-	<version>0.4.4.6</version>
+	<version>0.4.4.7</version>
 	<name>Xero-Java SDK</name>
 	<url>http://maven.apache.org</url>
 
@@ -19,7 +19,6 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.25</version>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.oauth-client</groupId>
@@ -45,7 +44,6 @@
 	<properties>
 	</properties>
 	<build>
-		<finalName>Xero-Java-SDK</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
